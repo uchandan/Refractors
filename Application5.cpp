@@ -144,7 +144,7 @@ int Application5::Initialize()
 #if 1 	/* set up app-defined camera if desired, else use camera defaults */
 		camera.position[X] = 0;
 		camera.position[Y] = 0;
-		camera.position[Z] = -30;
+		camera.position[Z] = -20;
 
 	    camera.lookat[X] = 0;
 		camera.lookat[Y] = -1;
