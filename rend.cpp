@@ -205,6 +205,7 @@ struct Plane
 		m_Normal.Normalise();
 	}
 };
+
 Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp)
 {
 	Vector3 _NormalVector = Vector3(_NormalTemp.x, _NormalTemp.y, _NormalTemp.z);
@@ -219,6 +220,8 @@ Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp)
 	// R = eta * I - (eta * dot(N, I) + sqrt(k)) * N;
 	Vector3  RefractedRay;
 	RefractedRay = _Eye.MultiplyByScalor(n).Subtract(_NormalVector.MultiplyByScalor(n * VdotN + sqrt(k)));
+
+	return RefractedRay;
 }
 
 // old one
@@ -1027,7 +1030,10 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 			_Normal = (GzCoord*) valueList[i];
 
 		else if(nameList[i] == GZ_TEXTURE_INDEX)
+		{
 			_TexIndex = (GzTextureIndex*) valueList[i];
+			
+		}
 	}
 
 	Point _VertN[3];
@@ -1248,6 +1254,8 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 	}
 
 
+	
+
 	float E1,E2,E3 ; 	
 	
 	//PLane equation for Z 
@@ -1301,31 +1309,51 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 				float zval,rval,gval,bval;
 				zval = (- _ZPlane.m_A * i - _ZPlane.m_B * j - _ZPlane.m_D) / _ZPlane.m_C ;
 
+				GzTextureIndex _UV;
+				_UV[0] = (- _TextureUPlane.m_A * i - _TextureUPlane.m_B * j - _TextureUPlane.m_D) / _TextureUPlane.m_C ;
+				_UV[1] = (- _TextureVPlane.m_A * i - _TextureVPlane.m_B * j - _TextureVPlane.m_D) / _TextureVPlane.m_C ;
+
+
+
+
+				GzTextureIndex _UVNew;
+				float _NewZ = zval /(INT_MAX - zval);
+				_UVNew[0] = _UV[0] * (_NewZ + 1);
+				_UVNew[1] = _UV[1] * (_NewZ + 1);
+
 				GzColor texColor;
-
-
-				Normals PixelNormal;
-				GzCoord PixelColor;
-
-				PixelNormal.x = (- _NormalXPlane.m_A * i - _NormalXPlane.m_B * j - _NormalXPlane.m_D) / _NormalXPlane.m_C ;
-				PixelNormal.y = (- _NormalYPlane.m_A * i - _NormalYPlane.m_B * j - _NormalYPlane.m_D) / _NormalYPlane.m_C ;
-				PixelNormal.z = (- _NormalZPlane.m_A * i - _NormalZPlane.m_B * j - _NormalZPlane.m_D) / _NormalZPlane.m_C ;
 				if (render->tex_fun != NULL)
+				{		 
+					render->tex_fun(_UVNew[0], _UVNew[1], texColor); 
+				}
+
+				if(render->interp_mode == GZ_NORMALS)
+				{
+					Normals PixelNormal;
+					GzCoord PixelColor;
+
+					PixelNormal.x = (- _NormalXPlane.m_A * i - _NormalXPlane.m_B * j - _NormalXPlane.m_D) / _NormalXPlane.m_C ;
+					PixelNormal.y = (- _NormalYPlane.m_A * i - _NormalYPlane.m_B * j - _NormalYPlane.m_D) / _NormalYPlane.m_C ;
+					PixelNormal.z = (- _NormalZPlane.m_A * i - _NormalZPlane.m_B * j - _NormalZPlane.m_D) / _NormalZPlane.m_C ;
+					if (render->tex_fun != NULL)
 				{	
 					render->Ka[RED] = render->Kd[RED] = texColor[RED];
 					render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
 					render->Ka[BLUE] = render->Kd[BLUE] = texColor[BLUE];
+					}
+					RefractedRayCalculation(render, PixelNormal);
+					ColorCalculate(render, PixelNormal, PixelColor);
+					if(PixelColor[0] > 1)
+						PixelColor[0] = 1;
+					if(PixelColor[1] > 1)
+						PixelColor[1] = 1;
+					if(PixelColor[2] >1)
+						PixelColor[2] = 1;
+					rval = PixelColor[0];
+					gval = PixelColor[1];
+					bval = PixelColor[2];
+
 				}
-				ColorCalculate(render, PixelNormal, PixelColor);
-				if(PixelColor[0] > 1)
-					PixelColor[0] = 1;
-				if(PixelColor[1] > 1)
-					PixelColor[1] = 1;
-				if(PixelColor[2] >1)
-					PixelColor[2] = 1;
-				rval = PixelColor[0];
-				gval = PixelColor[1];
-				bval = PixelColor[2];
 				
 				GzGetDisplay(render->display, i, j, &_TempPixel.red, &_TempPixel.green, &_TempPixel.blue,&_TempPixel.alpha,&_TempPixel.z);
 				
@@ -1341,30 +1369,49 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 				float zval,rval,gval,bval;
 				zval = (- _ZPlane.m_A * i - _ZPlane.m_B * j - _ZPlane.m_D) / _ZPlane.m_C ;
 
+				GzTextureIndex _UV;
+				_UV[0] = (- _TextureUPlane.m_A * i - _TextureUPlane.m_B * j - _TextureUPlane.m_D) / _TextureUPlane.m_C ;
+				_UV[1] = (- _TextureVPlane.m_A * i - _TextureVPlane.m_B * j - _TextureVPlane.m_D) / _TextureVPlane.m_C ;
+
+
+				GzTextureIndex _UVNew;
+				float _NewZ = zval /(INT_MAX - zval);
+				_UVNew[0] = _UV[0] * (_NewZ + 1);
+				_UVNew[1] = _UV[1] * (_NewZ + 1);
+
 				GzColor texColor;
+				if (render->tex_fun != NULL)
+				{		 
+					render->tex_fun(_UVNew[0], _UVNew[1], texColor); 
+				}
+
 				
-				Normals PixelNormal;
-				GzCoord PixelColor;
 
-				PixelNormal.x = (- _NormalXPlane.m_A * i - _NormalXPlane.m_B * j - _NormalXPlane.m_D) / _NormalXPlane.m_C ;
-				PixelNormal.y = (- _NormalYPlane.m_A * i - _NormalYPlane.m_B * j - _NormalYPlane.m_D) / _NormalYPlane.m_C ;
-				PixelNormal.z = (- _NormalZPlane.m_A * i - _NormalZPlane.m_B * j - _NormalZPlane.m_D) / _NormalZPlane.m_C ;
+				if(render->interp_mode == GZ_NORMALS)
+				{
+					Normals PixelNormal;
+					GzCoord PixelColor;
 
-				render->Ka[RED] = render->Kd[RED] = texColor[RED];
-				render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
-				render->Ka[BLUE] = render->Kd[BLUE] = texColor[BLUE];
+					PixelNormal.x = (- _NormalXPlane.m_A * i - _NormalXPlane.m_B * j - _NormalXPlane.m_D) / _NormalXPlane.m_C ;
+					PixelNormal.y = (- _NormalYPlane.m_A * i - _NormalYPlane.m_B * j - _NormalYPlane.m_D) / _NormalYPlane.m_C ;
+					PixelNormal.z = (- _NormalZPlane.m_A * i - _NormalZPlane.m_B * j - _NormalZPlane.m_D) / _NormalZPlane.m_C ;
 
-				ColorCalculate(render, PixelNormal, PixelColor);
-				if(PixelColor[0] > 1)
-					PixelColor[0] = 1;
-				if(PixelColor[1] > 1)
-					PixelColor[1] = 1;
-				if(PixelColor[2] >1)
-					PixelColor[2] = 1;
-				rval = PixelColor[0];
-				gval = PixelColor[1];
-				bval = PixelColor[2];
+					render->Ka[RED] = render->Kd[RED] = texColor[RED];
+					render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
+					render->Ka[BLUE] = render->Kd[BLUE] = texColor[BLUE];
 
+					ColorCalculate(render, PixelNormal, PixelColor);
+					if(PixelColor[0] > 1)
+						PixelColor[0] = 1;
+					if(PixelColor[1] > 1)
+						PixelColor[1] = 1;
+					if(PixelColor[2] >1)
+						PixelColor[2] = 1;
+					rval = PixelColor[0];
+					gval = PixelColor[1];
+					bval = PixelColor[2];
+
+				}
 				
 				GzGetDisplay(render->display, i, j, &_TempPixel.red, &_TempPixel.green, &_TempPixel.blue,&_TempPixel.alpha,&_TempPixel.z);
 				
@@ -1377,30 +1424,49 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 				float zval,rval,gval,bval;
 				zval = (- _ZPlane.m_A * i - _ZPlane.m_B * j - _ZPlane.m_D) / _ZPlane.m_C ;
 
+				GzTextureIndex _UV;
+				_UV[0] = (- _TextureUPlane.m_A * i - _TextureUPlane.m_B * j - _TextureUPlane.m_D) / _TextureUPlane.m_C ;
+				_UV[1] = (- _TextureVPlane.m_A * i - _TextureVPlane.m_B * j - _TextureVPlane.m_D) / _TextureVPlane.m_C ;
+
+
+				GzTextureIndex _UVNew;
+				float _NewZ = zval /(INT_MAX - zval);
+				_UVNew[0] = _UV[0] * (_NewZ + 1);
+				_UVNew[1] = _UV[1] * (_NewZ + 1);
+
 				GzColor texColor;
+				if (render->tex_fun != NULL)
+				{		 
+					render->tex_fun(_UVNew[0], _UVNew[1], texColor); 
+				}
+
 				
-				Normals PixelNormal;
-				GzCoord PixelColor;
+				if(render->interp_mode == GZ_NORMALS)
+				{
+					Normals PixelNormal;
+					GzCoord PixelColor;
 
-				PixelNormal.x = (- _NormalXPlane.m_A * i - _NormalXPlane.m_B * j - _NormalXPlane.m_D) / _NormalXPlane.m_C ;
-				PixelNormal.y = (- _NormalYPlane.m_A * i - _NormalYPlane.m_B * j - _NormalYPlane.m_D) / _NormalYPlane.m_C ;
-				PixelNormal.z = (- _NormalZPlane.m_A * i - _NormalZPlane.m_B * j - _NormalZPlane.m_D) / _NormalZPlane.m_C ;
+					PixelNormal.x = (- _NormalXPlane.m_A * i - _NormalXPlane.m_B * j - _NormalXPlane.m_D) / _NormalXPlane.m_C ;
+					PixelNormal.y = (- _NormalYPlane.m_A * i - _NormalYPlane.m_B * j - _NormalYPlane.m_D) / _NormalYPlane.m_C ;
+					PixelNormal.z = (- _NormalZPlane.m_A * i - _NormalZPlane.m_B * j - _NormalZPlane.m_D) / _NormalZPlane.m_C ;
 
-				render->Ka[RED] = render->Kd[RED] = texColor[RED];
-				render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
-				render->Ka[BLUE] = render->Kd[BLUE] = texColor[BLUE];
+					render->Ka[RED] = render->Kd[RED] = texColor[RED];
+					render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
+					render->Ka[BLUE] = render->Kd[BLUE] = texColor[BLUE];
 
-				ColorCalculate(render, PixelNormal, PixelColor);
-				if(PixelColor[0] > 1)
-					PixelColor[0] = 1;
-				if(PixelColor[1] > 1)
-					PixelColor[1] = 1;
-				if(PixelColor[2] >1)
-					PixelColor[2] = 1;
-				rval = PixelColor[0];
-				gval = PixelColor[1];
-				bval = PixelColor[2];
+					ColorCalculate(render, PixelNormal, PixelColor);
+					if(PixelColor[0] > 1)
+						PixelColor[0] = 1;
+					if(PixelColor[1] > 1)
+						PixelColor[1] = 1;
+					if(PixelColor[2] >1)
+						PixelColor[2] = 1;
+					rval = PixelColor[0];
+					gval = PixelColor[1];
+					bval = PixelColor[2];
 
+				}
+				
 				GzGetDisplay(render->display, i, j, &_TempPixel.red, &_TempPixel.green, &_TempPixel.blue,&_TempPixel.alpha,&_TempPixel.z);
 				
 				if(zval < _TempPixel.z)
