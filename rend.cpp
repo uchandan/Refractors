@@ -1301,16 +1301,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 				float zval,rval,gval,bval;
 				zval = (- _ZPlane.m_A * i - _ZPlane.m_B * j - _ZPlane.m_D) / _ZPlane.m_C ;
 
-				GzTextureIndex _UV;
-				_UV[0] = (- _TextureUPlane.m_A * i - _TextureUPlane.m_B * j - _TextureUPlane.m_D) / _TextureUPlane.m_C ;
-				_UV[1] = (- _TextureVPlane.m_A * i - _TextureVPlane.m_B * j - _TextureVPlane.m_D) / _TextureVPlane.m_C ;
-
-
-				GzTextureIndex _UVNew;
-				float _NewZ = zval /(INT_MAX - zval);
-				_UVNew[0] = _UV[0] * (_NewZ + 1);
-				_UVNew[1] = _UV[1] * (_NewZ + 1);
-
 				GzColor texColor;
 
 
@@ -1351,16 +1341,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 				float zval,rval,gval,bval;
 				zval = (- _ZPlane.m_A * i - _ZPlane.m_B * j - _ZPlane.m_D) / _ZPlane.m_C ;
 
-				GzTextureIndex _UV;
-				_UV[0] = (- _TextureUPlane.m_A * i - _TextureUPlane.m_B * j - _TextureUPlane.m_D) / _TextureUPlane.m_C ;
-				_UV[1] = (- _TextureVPlane.m_A * i - _TextureVPlane.m_B * j - _TextureVPlane.m_D) / _TextureVPlane.m_C ;
-
-
-				GzTextureIndex _UVNew;
-				float _NewZ = zval /(INT_MAX - zval);
-				_UVNew[0] = _UV[0] * (_NewZ + 1);
-				_UVNew[1] = _UV[1] * (_NewZ + 1);
-
 				GzColor texColor;
 				
 				Normals PixelNormal;
@@ -1396,16 +1376,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 			{
 				float zval,rval,gval,bval;
 				zval = (- _ZPlane.m_A * i - _ZPlane.m_B * j - _ZPlane.m_D) / _ZPlane.m_C ;
-
-				GzTextureIndex _UV;
-				_UV[0] = (- _TextureUPlane.m_A * i - _TextureUPlane.m_B * j - _TextureUPlane.m_D) / _TextureUPlane.m_C ;
-				_UV[1] = (- _TextureVPlane.m_A * i - _TextureVPlane.m_B * j - _TextureVPlane.m_D) / _TextureVPlane.m_C ;
-
-
-				GzTextureIndex _UVNew;
-				float _NewZ = zval /(INT_MAX - zval);
-				_UVNew[0] = _UV[0] * (_NewZ + 1);
-				_UVNew[1] = _UV[1] * (_NewZ + 1);
 
 				GzColor texColor;
 				
