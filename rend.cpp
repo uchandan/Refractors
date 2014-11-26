@@ -206,11 +206,10 @@ struct Plane
 	}
 };
 
-void RefractedRayCalculation(GzRender *render, Normals _NormalTemp)
+void RefractedRayCalculation(GzRender *render, Normals _NormalTemp, Vector3 *refractedRay)
 {
 	Vector3 _NormalVector = Vector3(_NormalTemp.x, _NormalTemp.y, _NormalTemp.z);
 	Vector3 _Eye = Vector3(0, 0, -1);
-	Vector3 S =  Vector3(0,0,0);
 	float n = 1.5;
 
 	// k = 1.0 - eta * eta * (1.0 - dot(N, I) * dot(N, I));
@@ -220,6 +219,10 @@ void RefractedRayCalculation(GzRender *render, Normals _NormalTemp)
 	// R = eta * I - (eta * dot(N, I) + sqrt(k)) * N;
 	Vector3  RefractedRay;
 	RefractedRay = _Eye.MultiplyByScalor(n).Subtract(_NormalVector.MultiplyByScalor(n * VdotN + sqrt(k)));
+
+	refractedRay->m_x = RefractedRay.m_x;
+	refractedRay->m_y = RefractedRay.m_y;
+	refractedRay->m_z = RefractedRay.m_z;
 }
 
 // old one
