@@ -45,7 +45,7 @@ int GzBeginRender(GzRender	*render);
 int GzPutAttribute(GzRender	*render, int numAttributes, GzToken	*nameList, 
 	GzPointer *valueList);
 int GzPutTriangle(GzRender *render, int	numParts, GzToken *nameList,
-	GzPointer *valueList);
+	GzPointer *valueList, bool );
 
 // HW3
 int GzPutCamera(GzRender *render, GzCamera *camera);

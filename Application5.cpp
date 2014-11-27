@@ -288,6 +288,7 @@ int Application5::Render()
 	* Walk through the list of triangles, set color 
 	* and render each triangle 
 	*/ 
+	int m_NumTriangles = 0;
 	while( fscanf(infile, "%s", dummy) == 1) { 	/* read in tri word */
 	    fscanf(infile, "%f %f %f %f %f %f %f %f", 
 		&(vertexList[0][0]), &(vertexList[0][1]),  
@@ -317,9 +318,14 @@ int Application5::Render()
 		 valueListTriangle[1] = (GzPointer)normalList; 
 		 valueListTriangle[2] = (GzPointer)uvList; 
 
-		 for(int i=0 ; i<AAKERNEL_SIZE ; i++)
+		bool _IsRefractive = true;
+		if(m_NumTriangles <= 1)
+			_IsRefractive = false;
+		m_NumTriangles++;
+
+		for(int i=0 ; i<AAKERNEL_SIZE ; i++)
 		{
-			GzPutTriangle(aa_pRender[i], 3, nameListTriangle, valueListTriangle); 
+			GzPutTriangle(aa_pRender[i], 3, nameListTriangle, valueListTriangle, _IsRefractive); 
 		 }
 	} 
 

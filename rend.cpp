@@ -206,10 +206,11 @@ struct Plane
 	}
 };
 
-void RefractedRayCalculation(GzRender *render, Normals _NormalTemp, Vector3 *refractedRay)
+Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp)
 {
 	Vector3 _NormalVector = Vector3(_NormalTemp.x, _NormalTemp.y, _NormalTemp.z);
 	Vector3 _Eye = Vector3(0, 0, -1);
+	Vector3 S =  Vector3(0,0,0);
 	float n = 1.5;
 
 	// k = 1.0 - eta * eta * (1.0 - dot(N, I) * dot(N, I));
@@ -220,11 +221,7 @@ void RefractedRayCalculation(GzRender *render, Normals _NormalTemp, Vector3 *ref
 	Vector3  RefractedRay;
 	RefractedRay = _Eye.MultiplyByScalor(n).Subtract(_NormalVector.MultiplyByScalor(n * VdotN + sqrt(k)));
 
-	refractedRay->m_x = RefractedRay.m_x;
-	refractedRay->m_y = RefractedRay.m_y;
-	refractedRay->m_z = RefractedRay.m_z;
-
-	return;
+	return RefractedRay;
 }
 
 // old one
@@ -1008,7 +1005,7 @@ void ConvertToAffine(Point *_Point)
 	//_Point->z = _Point->z * (zNew + 1);
 }
 
-int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*valueList)
+int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*valueList, bool _IsRefractive)
 /* numParts : how many names and values */
 {
  	if (render == NULL || nameList == NULL || valueList == NULL)
@@ -1344,7 +1341,7 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 					render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
 					render->Ka[BLUE] = render->Kd[BLUE] = texColor[BLUE];
 					}
-					//RefractedRayCalculation(render, PixelNormal);
+					RefractedRayCalculation(render, PixelNormal);
 					ColorCalculate(render, PixelNormal, PixelColor);
 					if(PixelColor[0] > 1)
 						PixelColor[0] = 1;
