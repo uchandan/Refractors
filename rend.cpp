@@ -62,6 +62,13 @@ struct Vector3
 		return 	_Vec;
 	}
 
+	Vector3 MultiplyByScalor(float value)
+	{
+		Vector3 _Vec = Vector3(m_x * value, m_y * value, m_z * value);
+		return 	_Vec;
+
+	}
+
 	inline Vector3 operator / ( float f) {return Vector3(m_x / f, m_y / f, m_z / f);}
 	void operator /= (const float &f) {m_x /= f; m_y /= f; m_z /= f;}
 
@@ -199,32 +206,29 @@ struct Plane
 		m_Normal.Normalise();
 	}
 };
-Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp)
+
+Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp)//, Vector3 *refractedRay)
 {
 	Vector3 _NormalVector = Vector3(_NormalTemp.x, _NormalTemp.y, _NormalTemp.z);
-	sprintf(debug_buf,"\nThe normal is %f %f %f", _NormalVector.m_x, _NormalVector.m_y,_NormalVector.m_z);
-	OutputDebugString(debug_buf);
-
 	Vector3 _Eye = Vector3(0, 0, -1);
-	Vector3 S =  Vector3(0,0,0);
 	float n = 1.5;
-	//R = eta * I - (eta * dot(N, I) + sqrt(k)) * N;
 
+	// k = 1.0 - eta * eta * (1.0 - dot(N, I) * dot(N, I));
 	float VdotN =  _Eye.Dot(_NormalVector);
 	float k = 1.0 - n * n * (1.0 - VdotN * VdotN);
 
-	Vector3 temp = Vector3(_NormalVector.m_x*VdotN, _NormalVector.m_y*VdotN, _NormalVector.m_z*VdotN); //N* NdotE
-	temp = _Eye.Subtract(temp);
+	// R = eta * I - (eta * dot(N, I) + sqrt(k)) * N;
+	Vector3  RefractedRay;
+	RefractedRay = _Eye.MultiplyByScalor(n).Subtract(_NormalVector.MultiplyByScalor(n * VdotN + sqrt(k)));
 
-	float val = sqrt(k);
-	Vector3 temp1 = _NormalVector;
-	temp1.m_x *= val;
-	temp1.m_y *= val;
-	temp1.m_z *= val;
-
-	Vector3  RefractedRay = (temp*n).Add(temp1);
 	return RefractedRay;
+	/*
+	refractedRay->m_x = RefractedRay.m_x;
+	refractedRay->m_y = RefractedRay.m_y;
+	refractedRay->m_z = RefractedRay.m_z;
+	*/
 }
+
 int normalMatrixlevel = 0;
 void GzMatrixMutiply(GzMatrix &result,GzMatrix first , GzMatrix second)
 {
