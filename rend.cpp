@@ -6,7 +6,7 @@
 #include	"Gz.h"
 #include	"rend.h"
 
-
+char debug_buf[1024];
 typedef struct point
 {
 	float x,y,z;
@@ -53,12 +53,6 @@ struct Vector3
 	Vector3 Add(const Vector3 &v)
 	{
 		Vector3 _Vec = Vector3(m_x +v.m_x, m_y+ v.m_y, m_z +v.m_x);
-		return 	_Vec;
-
-	}
-	Vector3 MultiplyByScalor(float value)
-	{
-		Vector3 _Vec = Vector3(m_x * value, m_y * value, m_z * value);
 		return 	_Vec;
 
 	}
@@ -205,27 +199,20 @@ struct Plane
 		m_Normal.Normalise();
 	}
 };
-
 Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp)
 {
 	Vector3 _NormalVector = Vector3(_NormalTemp.x, _NormalTemp.y, _NormalTemp.z);
+	sprintf(debug_buf,"\nThe normal is %f %f %f", _NormalVector.m_x, _NormalVector.m_y,_NormalVector.m_z);
+	OutputDebugString(debug_buf);
+
 	Vector3 _Eye = Vector3(0, 0, -1);
 	Vector3 S =  Vector3(0,0,0);
 	float n = 1.5;
+	//R = eta * I - (eta * dot(N, I) + sqrt(k)) * N;
 
-	// k = 1.0 - eta * eta * (1.0 - dot(N, I) * dot(N, I));
 	float VdotN =  _Eye.Dot(_NormalVector);
 	float k = 1.0 - n * n * (1.0 - VdotN * VdotN);
 
-	// R = eta * I - (eta * dot(N, I) + sqrt(k)) * N;
-	Vector3  RefractedRay;
-	RefractedRay = _Eye.MultiplyByScalor(n).Subtract(_NormalVector.MultiplyByScalor(n * VdotN + sqrt(k)));
-
-	return RefractedRay;
-}
-
-// old one
-	/*
 	Vector3 temp = Vector3(_NormalVector.m_x*VdotN, _NormalVector.m_y*VdotN, _NormalVector.m_z*VdotN); //N* NdotE
 	temp = _Eye.Subtract(temp);
 
@@ -236,10 +223,8 @@ Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp)
 	temp1.m_z *= val;
 
 	Vector3  RefractedRay = (temp*n).Add(temp1);
-	*/
-	//sprintf(debug_buf,"\n %f %f %f", RefractedRay.m_x, RefractedRay.m_y,RefractedRay.m_z);
-	//OutputDebugString(debug_buf);
-
+	return RefractedRay;
+}
 int normalMatrixlevel = 0;
 void GzMatrixMutiply(GzMatrix &result,GzMatrix first , GzMatrix second)
 {
@@ -1005,16 +990,11 @@ void ConvertToAffine(Point *_Point)
 	//_Point->z = _Point->z * (zNew + 1);
 }
 
-int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*valueList, bool _IsRefractive)
 /* numParts : how many names and values */
+int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*valueList, bool _IsRefractive)
 {
  	if (render == NULL || nameList == NULL || valueList == NULL)
 		return GZ_FAILURE;
-
-	if(render->interp_mode == GZ_FLAT)
-	{
-		
-	}
 
 	GzCoord* _Vert;
 	GzCoord* _Normal;
@@ -1161,6 +1141,7 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 	_Normal1[1].SetValues(_Normalvertex[1][X], _Normalvertex[1][Y], _Normalvertex[1][Z]);
 	_Normal1[2].SetValues(_Normalvertex[2][X], _Normalvertex[2][Y], _Normalvertex[2][Z]);
 
+	RefractedRayCalculation(render, _Normal1[0]);
 	//texture stuff
 	Point _TextureCoords[3];
 	for(int k=0 ; k<3 ; k++)
@@ -1335,13 +1316,18 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 					PixelNormal.x = (- _NormalXPlane.m_A * i - _NormalXPlane.m_B * j - _NormalXPlane.m_D) / _NormalXPlane.m_C ;
 					PixelNormal.y = (- _NormalYPlane.m_A * i - _NormalYPlane.m_B * j - _NormalYPlane.m_D) / _NormalYPlane.m_C ;
 					PixelNormal.z = (- _NormalZPlane.m_A * i - _NormalZPlane.m_B * j - _NormalZPlane.m_D) / _NormalZPlane.m_C ;
+
+					/*if(_IsRefractive)
+						RefractedRayCalculation(render, PixelNormal);*/
+					
+
 					if (render->tex_fun != NULL)
-				{	
-					render->Ka[RED] = render->Kd[RED] = texColor[RED];
-					render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
-					render->Ka[BLUE] = render->Kd[BLUE] = texColor[BLUE];
+					{	
+						render->Ka[RED] = render->Kd[RED] = texColor[RED];
+						render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
+						render->Ka[BLUE] = render->Kd[BLUE] = texColor[BLUE];
 					}
-					RefractedRayCalculation(render, PixelNormal);
+					
 					ColorCalculate(render, PixelNormal, PixelColor);
 					if(PixelColor[0] > 1)
 						PixelColor[0] = 1;
@@ -1354,7 +1340,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 					bval = PixelColor[2];
 
 				}
-				
 				GzGetDisplay(render->display, i, j, &_TempPixel.red, &_TempPixel.green, &_TempPixel.blue,&_TempPixel.alpha,&_TempPixel.z);
 				
 				if(zval < _TempPixel.z)
@@ -1385,8 +1370,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 					render->tex_fun(_UVNew[0], _UVNew[1], texColor); 
 				}
 
-				
-
 				if(render->interp_mode == GZ_NORMALS)
 				{
 					Normals PixelNormal;
@@ -1395,6 +1378,9 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 					PixelNormal.x = (- _NormalXPlane.m_A * i - _NormalXPlane.m_B * j - _NormalXPlane.m_D) / _NormalXPlane.m_C ;
 					PixelNormal.y = (- _NormalYPlane.m_A * i - _NormalYPlane.m_B * j - _NormalYPlane.m_D) / _NormalYPlane.m_C ;
 					PixelNormal.z = (- _NormalZPlane.m_A * i - _NormalZPlane.m_B * j - _NormalZPlane.m_D) / _NormalZPlane.m_C ;
+
+					/*if(_IsRefractive)
+						RefractedRayCalculation(render, PixelNormal);*/
 
 					render->Ka[RED] = render->Kd[RED] = texColor[RED];
 					render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
@@ -1412,7 +1398,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 					bval = PixelColor[2];
 
 				}
-				
 				GzGetDisplay(render->display, i, j, &_TempPixel.red, &_TempPixel.green, &_TempPixel.blue,&_TempPixel.alpha,&_TempPixel.z);
 				
 				if(zval < _TempPixel.z)
@@ -1440,7 +1425,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 					render->tex_fun(_UVNew[0], _UVNew[1], texColor); 
 				}
 
-				
 				if(render->interp_mode == GZ_NORMALS)
 				{
 					Normals PixelNormal;
@@ -1449,6 +1433,8 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 					PixelNormal.x = (- _NormalXPlane.m_A * i - _NormalXPlane.m_B * j - _NormalXPlane.m_D) / _NormalXPlane.m_C ;
 					PixelNormal.y = (- _NormalYPlane.m_A * i - _NormalYPlane.m_B * j - _NormalYPlane.m_D) / _NormalYPlane.m_C ;
 					PixelNormal.z = (- _NormalZPlane.m_A * i - _NormalZPlane.m_B * j - _NormalZPlane.m_D) / _NormalZPlane.m_C ;
+
+					
 
 					render->Ka[RED] = render->Kd[RED] = texColor[RED];
 					render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
@@ -1466,7 +1452,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 					bval = PixelColor[2];
 
 				}
-				
 				GzGetDisplay(render->display, i, j, &_TempPixel.red, &_TempPixel.green, &_TempPixel.blue,&_TempPixel.alpha,&_TempPixel.z);
 				
 				if(zval < _TempPixel.z)
@@ -1478,6 +1463,9 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 	}
 	return GZ_SUCCESS;
 }
+
+
+
 
 
 
