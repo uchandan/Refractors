@@ -19,7 +19,8 @@ static char THIS_FILE[]=__FILE__;
 #define new DEBUG_NEW
 #endif
 
-#define INFILE  "ppot.asc"
+#define INFILE "Cube.asc"
+//#define INFILE  "ppot.asc"
 #define OUTFILE "output.ppm"
 float AAFilter[AAKERNEL_SIZE][3] =                      /* X, Y, coef */
 {
