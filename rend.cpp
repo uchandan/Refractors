@@ -207,10 +207,10 @@ struct Plane
 	}
 };
 
-Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp)//, Vector3 *refractedRay)
+Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp, float x, float y)//, Vector3 *refractedRay)
 {
 	Vector3 _NormalVector = Vector3(_NormalTemp.x, _NormalTemp.y, _NormalTemp.z);
-	Vector3 _Eye = Vector3(0, 0, -1);
+	Vector3 _Eye = Vector3(256/2, -256/2, -1);
 	float n = 1.5;
 
 	// k = 1.0 - eta * eta * (1.0 - dot(N, I) * dot(N, I));
@@ -220,6 +220,12 @@ Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp)//, Vector
 	// R = eta * I - (eta * dot(N, I) + sqrt(k)) * N;
 	Vector3  RefractedRay;
 	RefractedRay = _Eye.MultiplyByScalor(n).Subtract(_NormalVector.MultiplyByScalor(n * VdotN + sqrt(k)));
+
+	sprintf(debug_buf,"\n PixelNormal: %f %f %f", _NormalTemp.x, _NormalTemp.y,_NormalTemp.z);
+	OutputDebugString(debug_buf);
+
+	sprintf(debug_buf,"\nRefractedRay: %f %f %f", RefractedRay.m_x, RefractedRay.m_y,RefractedRay.m_z);
+	OutputDebugString(debug_buf);
 
 	return RefractedRay;
 	/*
@@ -1145,7 +1151,7 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 	_Normal1[1].SetValues(_Normalvertex[1][X], _Normalvertex[1][Y], _Normalvertex[1][Z]);
 	_Normal1[2].SetValues(_Normalvertex[2][X], _Normalvertex[2][Y], _Normalvertex[2][Z]);
 
-	RefractedRayCalculation(render, _Normal1[0]);
+	//RefractedRayCalculation(render, _Normal1[0]);
 	//texture stuff
 	Point _TextureCoords[3];
 	for(int k=0 ; k<3 ; k++)
@@ -1298,9 +1304,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 				_UV[0] = (- _TextureUPlane.m_A * i - _TextureUPlane.m_B * j - _TextureUPlane.m_D) / _TextureUPlane.m_C ;
 				_UV[1] = (- _TextureVPlane.m_A * i - _TextureVPlane.m_B * j - _TextureVPlane.m_D) / _TextureVPlane.m_C ;
 
-
-
-
 				GzTextureIndex _UVNew;
 				float _NewZ = zval /(INT_MAX - zval);
 				_UVNew[0] = _UV[0] * (_NewZ + 1);
@@ -1321,9 +1324,12 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 					PixelNormal.y = (- _NormalYPlane.m_A * i - _NormalYPlane.m_B * j - _NormalYPlane.m_D) / _NormalYPlane.m_C ;
 					PixelNormal.z = (- _NormalZPlane.m_A * i - _NormalZPlane.m_B * j - _NormalZPlane.m_D) / _NormalZPlane.m_C ;
 
-					/*if(_IsRefractive)
-						RefractedRayCalculation(render, PixelNormal);*/
-					
+					//sprintf(debug_buf,"\n PixelNormal: %f %f %f", PixelNormal.x, PixelNormal.y,PixelNormal.z);
+					//OutputDebugString(debug_buf);
+
+					if(_IsRefractive)
+						RefractedRayCalculation(render, PixelNormal);
+			
 
 					if (render->tex_fun != NULL)
 					{	
@@ -1383,8 +1389,11 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 					PixelNormal.y = (- _NormalYPlane.m_A * i - _NormalYPlane.m_B * j - _NormalYPlane.m_D) / _NormalYPlane.m_C ;
 					PixelNormal.z = (- _NormalZPlane.m_A * i - _NormalZPlane.m_B * j - _NormalZPlane.m_D) / _NormalZPlane.m_C ;
 
-					/*if(_IsRefractive)
-						RefractedRayCalculation(render, PixelNormal);*/
+					//sprintf(debug_buf,"\n PixelNormal: %f %f %f", PixelNormal.x, PixelNormal.y,PixelNormal.z);
+					//OutputDebugString(debug_buf);
+
+					if(_IsRefractive)
+						RefractedRayCalculation(render, PixelNormal);
 
 					render->Ka[RED] = render->Kd[RED] = texColor[RED];
 					render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
@@ -1438,7 +1447,11 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 					PixelNormal.y = (- _NormalYPlane.m_A * i - _NormalYPlane.m_B * j - _NormalYPlane.m_D) / _NormalYPlane.m_C ;
 					PixelNormal.z = (- _NormalZPlane.m_A * i - _NormalZPlane.m_B * j - _NormalZPlane.m_D) / _NormalZPlane.m_C ;
 
-					
+					//sprintf(debug_buf,"\n PixelNormal: %f %f %f", PixelNormal.x, PixelNormal.y,PixelNormal.z);
+					//OutputDebugString(debug_buf);
+
+					if(_IsRefractive)
+						RefractedRayCalculation(render, PixelNormal);				
 
 					render->Ka[RED] = render->Kd[RED] = texColor[RED];
 					render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
