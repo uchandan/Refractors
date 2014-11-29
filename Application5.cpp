@@ -125,7 +125,7 @@ GzMatrix	rotateY =
 	GzLight	light1 = { {-0.7071, 0.7071, 0}, {0.5, 0.5, 0.9} };
 	GzLight	light2 = { {0, -0.7071, -0.7071}, {0.9, 0.2, 0.3} };
 	GzLight	light3 = { {0.7071, 0.0, -0.7071}, {0.2, 0.7, 0.3} };
-	GzLight	ambientlight = { {0, 0, 0}, {0.3, 0.3, 0.3} };
+	GzLight ambientlight = { {0, 0, 0}, {0.7, 0.7, 0.7} };
 
 	/* Material property */
 	GzColor specularCoefficient = { 0.3, 0.3, 0.3 };
@@ -233,6 +233,7 @@ int Application5::Render()
 	* Walk through the list of triangles, set color 
 	* and render each triangle 
 	*/ 
+	int m_NumTriangles = 0;
 	while( fscanf(infile, "%s", dummy) == 1) { 	/* read in tri word */
 	    fscanf(infile, "%f %f %f %f %f %f %f %f", 
 		&(vertexList[0][0]), &(vertexList[0][1]),  
@@ -261,7 +262,13 @@ int Application5::Render()
 	     valueListTriangle[0] = (GzPointer)vertexList; 
 		 valueListTriangle[1] = (GzPointer)normalList; 
 		 valueListTriangle[2] = (GzPointer)uvList; 
-		 GzPutTriangle(m_pRender, 3, nameListTriangle, valueListTriangle, 1); 
+
+		 bool _IsRefractive = true;
+		if(m_NumTriangles <= 1)
+			_IsRefractive = false;
+		m_NumTriangles++;
+
+		 GzPutTriangle(m_pRender, 3, nameListTriangle, valueListTriangle, _IsRefractive); 
 	} 
 
 	GzFlushDisplay2File(outfile, m_pDisplay); 	/* write out or update display to file*/

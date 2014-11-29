@@ -213,11 +213,9 @@ Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp)//, Vector
 	Vector3 _Eye = Vector3(256/2, -256/2, -1);
 	float n = 1.5;
 
-	// k = 1.0 - eta * eta * (1.0 - dot(N, I) * dot(N, I));
 	float VdotN =  _Eye.Dot(_NormalVector);
 	float k = 1.0 - n * n * (1.0 - VdotN * VdotN);
 
-	// R = eta * I - (eta * dot(N, I) + sqrt(k)) * N;
 	Vector3  RefractedRay;
 	RefractedRay = _Eye.MultiplyByScalor(n).Subtract(_NormalVector.MultiplyByScalor(n * VdotN + sqrt(k)));
 
@@ -228,11 +226,6 @@ Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp)//, Vector
 	//OutputDebugString(debug_buf);
 
 	return RefractedRay;
-	/*
-	refractedRay->m_x = RefractedRay.m_x;
-	refractedRay->m_y = RefractedRay.m_y;
-	refractedRay->m_z = RefractedRay.m_z;
-	*/
 }
 
 int normalMatrixlevel = 0;
@@ -366,8 +359,6 @@ int GzTrxMat(GzCoord translate, GzMatrix _Matrix)
 
 	return GZ_SUCCESS;
 }
-
-
 int GzScaleMat(GzCoord scale, GzMatrix _Matrix)
 {
 	InitializeMatrix((GzMatrix*)_Matrix);
@@ -414,9 +405,6 @@ int GzNewRender(GzRender **render,  GzDisplay	*display)
 			rend->camera.Xiw[i][j] = 0;
 			rend->camera.Xpi[i][j] = 0;
 		}
-	//GzCamera *camera;
-	//camera = new GzCamera;
-	//GzPutCamera(rend,camera);
 
 	*render = rend;
 	return GZ_SUCCESS;
@@ -823,7 +811,7 @@ int GzPutAttribute(GzRender	*render, int numAttributes, GzToken	*nameList,
 			GzTexture _Tex = (GzTexture)(valueList[i]); 
 			render->tex_fun = _Tex;
 		}
-		else if (nameList[i] == GZ_AASHIFTX)
+	/*	else if (nameList[i] == GZ_AASHIFTX)
 		{
 			float* shiftx = (float*)(valueList[i]);
 			render->a_offsetX = (*shiftx);
@@ -832,7 +820,7 @@ int GzPutAttribute(GzRender	*render, int numAttributes, GzToken	*nameList,
 		{
 			float* shifty = (float*)(valueList[i]);
 			render->a_offsetY = (*shifty);
-		}
+		}*/
 	}
 	return GZ_SUCCESS;
 }
@@ -1034,6 +1022,13 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 		_VertN[k].z= _Vert[k][Z];
 	}
 
+	sprintf(debug_buf,"\n vert 1 is: %f %f %f", _Vert[0][0], _Vert[0][1], _Vert[0][2]);
+	OutputDebugString(debug_buf);
+	sprintf(debug_buf,"\n vert 2 is: %f %f %f", _Vert[1][0], _Vert[1][1], _Vert[1][2]);
+	OutputDebugString(debug_buf);
+	sprintf(debug_buf,"\n vert 3 is: %f %f %f", _Vert[2][1], _Vert[2][1], _Vert[2][2]);
+	OutputDebugString(debug_buf);
+
  	Plane _FlatPlane;
 	_FlatPlane.CalculateValues(_VertN);
 	_FlatPlane.CalculateAndNormalize();
@@ -1140,7 +1135,14 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 
 	_VertexPosition[0].SetValues(_TransformTriangle[0][X], _TransformTriangle[0][Y], _TransformTriangle[0][Z]);
 	_VertexPosition[1].SetValues(_TransformTriangle[1][X], _TransformTriangle[1][Y], _TransformTriangle[1][Z]);
-	_VertexPosition[2].SetValues(_TransformTriangle[2][X], _TransformTriangle[2][Y], _TransformTriangle[2][Z]);													 			   
+	_VertexPosition[2].SetValues(_TransformTriangle[2][X], _TransformTriangle[2][Y], _TransformTriangle[2][Z]);	
+
+	sprintf(debug_buf,"\n vertex 1 is: %f %f %f", _VertexPosition[0].x, _VertexPosition[0].y, _VertexPosition[0].z);
+	OutputDebugString(debug_buf);
+	sprintf(debug_buf,"\n vertex 2 is: %f %f %f", _VertexPosition[1].x, _VertexPosition[1].y, _VertexPosition[1].z);
+	OutputDebugString(debug_buf);
+	sprintf(debug_buf,"\n vertex 3 is: %f %f %f", _VertexPosition[2].x, _VertexPosition[2].y, _VertexPosition[2].z);
+	OutputDebugString(debug_buf);
 
 	_Normal1[0].SetValues(_Normalvertex[0][X], _Normalvertex[0][Y], _Normalvertex[0][Z]);
 	_Normal1[1].SetValues(_Normalvertex[1][X], _Normalvertex[1][Y], _Normalvertex[1][Z]);
@@ -1303,6 +1305,15 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 				float _NewZ = zval /(INT_MAX - zval);
 				_UVNew[0] = _UV[0] * (_NewZ + 1);
 				_UVNew[1] = _UV[1] * (_NewZ + 1);
+				
+				if(_IsRefractive)
+				{
+					//sprintf(debug_buf,"\n i and j are : %i, %i", i, j);
+					//OutputDebugString(debug_buf);
+
+					_UVNew[0] = i/290.0f;
+					_UVNew[1] = j/290.0f;
+				}
 
 				GzColor texColor;
 				if (render->tex_fun != NULL)
@@ -1368,6 +1379,15 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 				float _NewZ = zval /(INT_MAX - zval);
 				_UVNew[0] = _UV[0] * (_NewZ + 1);
 				_UVNew[1] = _UV[1] * (_NewZ + 1);
+				
+				if(_IsRefractive)
+				{
+					//sprintf(debug_buf,"\n i and j are : %i, %i", i, j);
+					//OutputDebugString(debug_buf);
+
+					_UVNew[0] = i/290.0f;
+					_UVNew[1] = j/290.0f;
+				}
 
 				GzColor texColor;
 				if (render->tex_fun != NULL)
@@ -1426,6 +1446,15 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 				float _NewZ = zval /(INT_MAX - zval);
 				_UVNew[0] = _UV[0] * (_NewZ + 1);
 				_UVNew[1] = _UV[1] * (_NewZ + 1);
+
+				if(_IsRefractive)
+				{
+					//sprintf(debug_buf,"\n i and j are : %i, %i", i, j);
+					//OutputDebugString(debug_buf);
+
+					_UVNew[0] = i/290.0f;
+					_UVNew[1] = j/290.0f;
+				}
 
 				GzColor texColor;
 				if (render->tex_fun != NULL)
