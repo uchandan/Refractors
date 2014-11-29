@@ -207,7 +207,7 @@ struct Plane
 	}
 };
 
-Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp, float x, float y)//, Vector3 *refractedRay)
+Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp)//, Vector3 *refractedRay)
 {
 	Vector3 _NormalVector = Vector3(_NormalTemp.x, _NormalTemp.y, _NormalTemp.z);
 	Vector3 _Eye = Vector3(256/2, -256/2, -1);
@@ -222,10 +222,10 @@ Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp, float x, 
 	RefractedRay = _Eye.MultiplyByScalor(n).Subtract(_NormalVector.MultiplyByScalor(n * VdotN + sqrt(k)));
 
 	sprintf(debug_buf,"\n PixelNormal: %f %f %f", _NormalTemp.x, _NormalTemp.y,_NormalTemp.z);
-	OutputDebugString(debug_buf);
+	//OutputDebugString(debug_buf);
 
 	sprintf(debug_buf,"\nRefractedRay: %f %f %f", RefractedRay.m_x, RefractedRay.m_y,RefractedRay.m_z);
-	OutputDebugString(debug_buf);
+	//OutputDebugString(debug_buf);
 
 	return RefractedRay;
 	/*
@@ -1034,7 +1034,7 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 		_VertN[k].z= _Vert[k][Z];
 	}
 
-	Plane _FlatPlane;
+ 	Plane _FlatPlane;
 	_FlatPlane.CalculateValues(_VertN);
 	_FlatPlane.CalculateAndNormalize();
 	
@@ -1088,11 +1088,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 	_TransformTriangle[2][Y] = _TriangleMatrix[1][2] / _TriangleMatrix[3][2];
 	_TransformTriangle[2][Z] = _TriangleMatrix[2][2] / _TriangleMatrix[3][2];
 
-	for (int k = 0; k < 3; k++) 
-	{ 
-		_TransformTriangle[k][X] = _TransformTriangle[k][X] - render->a_offsetX ;  
-		_TransformTriangle[k][Y] = _TransformTriangle[k][Y] - render->a_offsetY;
-	}
 
 	GzMatrix _WorldMatrixNormal;
 	_WorldMatrixNormal[0][0] = _Normal[0][X];	
