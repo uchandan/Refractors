@@ -34,6 +34,13 @@ typedef struct {			/* define a renderer */
 
   float a_offsetX;
   float a_offsetY;
+
+
+	float m_MaxXG;
+	float m_MaxYG;
+	float m_MinXG;
+	float m_MinYG;
+
 }  GzRender;
 #endif
 

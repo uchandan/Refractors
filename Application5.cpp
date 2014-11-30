@@ -102,11 +102,11 @@ GzMatrix	rotateY =
 
 #if 1 	/* set up app-defined camera if desired, else use camera defaults */
 	camera.position[X] = 0;
-	camera.position[Y] = 0;
-	camera.position[Z] = -20;
+	camera.position[Y] = -2;
+	camera.position[Z] = -32;
 
 	camera.lookat[X] = 0;
-	camera.lookat[Y] = -1;
+	camera.lookat[Y] = -3;
 	camera.lookat[Z] = 0;
 
 	camera.worldup[X] = 0.0;
@@ -184,6 +184,12 @@ GzMatrix	rotateY =
 	status |= GzPushMatrix(m_pRender, scale);  
 	status |= GzPushMatrix(m_pRender, rotateY); 
 	status |= GzPushMatrix(m_pRender, rotateX); 
+
+	m_pRender->m_MaxXG = -1000000;
+	m_pRender->m_MaxYG = -1000000;
+	m_pRender->m_MinXG = 1000000;
+	m_pRender->m_MinYG = 1000000;
+
 
 	if (status) exit(GZ_FAILURE); 
 

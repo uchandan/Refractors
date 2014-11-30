@@ -7,6 +7,7 @@
 #include	"rend.h"
 
 char debug_buf[1024];
+
 typedef struct point
 {
 	float x,y,z;
@@ -224,6 +225,14 @@ Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp, int x, in
 
 	sprintf(debug_buf,"\nRefractedRay: %f %f %f", RefractedRay.m_x, RefractedRay.m_y,RefractedRay.m_z);
 	//OutputDebugString(debug_buf);
+
+	//x-=15;
+
+	float _DistX = render->m_MaxXG - render->m_MinXG;
+	float _DistY = render->m_MaxYG - render->m_MinYG;
+
+	RefractedRay.m_x = 1 - x/_DistX;
+	RefractedRay.m_y = y/_DistY;
 
 	return RefractedRay;
 }
@@ -994,6 +1003,9 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
  	if (render == NULL || nameList == NULL || valueList == NULL)
 		return GZ_FAILURE;
 
+
+
+
 	GzCoord* _Vert;
 	GzCoord* _Normal;
 	GzCoord* _NormalFlat = (GzCoord*)valueList[1];
@@ -1241,7 +1253,17 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 			xmax = _VertexPosition[i].x;
 	}
 
-
+	if(!_IsRefractive)
+	{
+		if(xmin < render->m_MinXG)
+			render->m_MinXG = xmin;
+		if(xmax > render->m_MaxXG)
+			render->m_MaxXG = xmax;
+		if(ymin < render->m_MinYG)
+			render->m_MinYG = ymin;
+		if(ymax > render->m_MaxYG)
+			render->m_MaxYG = ymax;
+	}
 	
 
 	float E1,E2,E3 ; 	
@@ -1314,11 +1336,10 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 				
 				if(_IsRefractive)
 				{
-					//sprintf(debug_buf,"\n i and j are : %i, %i", i, j);
-					//OutputDebugString(debug_buf);
+					Vector3 _NewPosition = RefractedRayCalculation(render, PixelNormal, i, j, 1);
 
-					_UVNew[0] = i/290.0f;
-					_UVNew[1] = j/290.0f;
+					_UVNew[0] = _NewPosition.m_x;
+					_UVNew[1] = _NewPosition.m_y;
 				}
 
 				GzColor texColor;
@@ -1329,15 +1350,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 
 				if(render->interp_mode == GZ_NORMALS)
 				{
-
-
-					//sprintf(debug_buf,"\n PixelNormal: %f %f %f", PixelNormal.x, PixelNormal.y,PixelNormal.z);
-					//OutputDebugString(debug_buf);
-
-					/*if(_IsRefractive)
-						RefractedRayCalculation(render, PixelNormal);*/
-			
-
 					if (render->tex_fun != NULL)
 					{	
 						render->Ka[RED] = render->Kd[RED] = texColor[RED];
@@ -1389,11 +1401,10 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 				
 				if(_IsRefractive)
 				{
-					//sprintf(debug_buf,"\n i and j are : %i, %i", i, j);
-					//OutputDebugString(debug_buf);
+					Vector3 _NewPosition = RefractedRayCalculation(render, PixelNormal, i, j, 1);
 
-					_UVNew[0] = i/290.0f;
-					_UVNew[1] = j/290.0f;
+					_UVNew[0] = _NewPosition.m_x;
+					_UVNew[1] = _NewPosition.m_y;
 				}
 
 				GzColor texColor;
@@ -1404,14 +1415,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 
 				if(render->interp_mode == GZ_NORMALS)
 				{
-
-
-					//sprintf(debug_buf,"\n PixelNormal: %f %f %f", PixelNormal.x, PixelNormal.y,PixelNormal.z);
-					//OutputDebugString(debug_buf);
-
-					/*if(_IsRefractive)
-						RefractedRayCalculation(render, PixelNormal);*/
-
 					render->Ka[RED] = render->Kd[RED] = texColor[RED];
 					render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
 					render->Ka[BLUE] = render->Kd[BLUE] = texColor[BLUE];
@@ -1457,11 +1460,10 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 
 				if(_IsRefractive)
 				{
-					//sprintf(debug_buf,"\n i and j are : %i, %i", i, j);
-					//OutputDebugString(debug_buf);
+					Vector3 _NewPosition = RefractedRayCalculation(render, PixelNormal, i, j, 1);
 
-					_UVNew[0] = i/290.0f;
-					_UVNew[1] = j/290.0f;
+					_UVNew[0] = _NewPosition.m_x;
+					_UVNew[1] = _NewPosition.m_y;
 				}
 
 				GzColor texColor;
@@ -1472,14 +1474,6 @@ int GzPutTriangle(GzRender	*render, int numParts, GzToken *nameList, GzPointer	*
 
 				if(render->interp_mode == GZ_NORMALS)
 				{
-					
-
-					//sprintf(debug_buf,"\n PixelNormal: %f %f %f", PixelNormal.x, PixelNormal.y,PixelNormal.z);
-					//OutputDebugString(debug_buf);
-
-					/*if(_IsRefractive)
-						RefractedRayCalculation(render, PixelNormal);				*/
-
 					render->Ka[RED] = render->Kd[RED] = texColor[RED];
 					render->Ka[GREEN] = render->Kd[GREEN] = texColor[GREEN];
 					render->Ka[BLUE] = render->Kd[BLUE] = texColor[BLUE];
