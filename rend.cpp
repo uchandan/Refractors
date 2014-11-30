@@ -207,34 +207,91 @@ struct Plane
 		m_Normal.Normalise();
 	}
 };
-
+float AngleBetweenVectors(Vector3 a, Vector3 b)
+{
+	float dot_product = a.m_x * b.m_x + a.m_y * b.m_y + a.m_z * b.m_z;
+	float _ReturnValue = acos(dot_product / (a.GetLength() * b.GetLength()));
+	return  _ReturnValue;
+}
+Vector3 Raycast(Vector3 _StartPosition, Vector3 _Direction, int m_NumberOfTimes, float _PlaneZ)
+{
+	Vector3 _CurrentPoint = _StartPosition;
+	for(int i=0 ; i<m_NumberOfTimes ; i++)
+	{
+		if(_CurrentPoint.m_z > _PlaneZ)
+			break;
+		_CurrentPoint = _CurrentPoint.Add(_Direction);
+		sprintf(debug_buf,"\n CurrentPoint: %f %f %f", _CurrentPoint.m_x, _CurrentPoint.m_y, _CurrentPoint.m_z);
+		OutputDebugString(debug_buf);
+	}
+	return _CurrentPoint;
+}
 Vector3 RefractedRayCalculation(GzRender *render, Normals _NormalTemp, int x, int y, int z)//, Vector3 *refractedRay)
 {
 	Vector3 _NormalVector = Vector3(_NormalTemp.x, _NormalTemp.y, _NormalTemp.z);
-	Vector3 _Eye = Vector3(256/2, -256/2, -1);
-	float n = 1.5;
 
-	float VdotN =  _Eye.Dot(_NormalVector);
+	Vector3 _PixelPosition = Vector3(x,y,z);
+	Vector3 _Eye = Vector3(256/2, -256/2, -1);
+	Vector3 _Incident = _PixelPosition.Subtract(_Eye);
+
+	_NormalVector.Normalise();
+	_Incident.Normalise();
+
+	float n = 1.1;
+
+	float VdotN =  _Incident.Dot(_NormalVector);
 	float k = 1.0 - n * n * (1.0 - VdotN * VdotN);
 
 	Vector3  RefractedRay;
-	RefractedRay = _Eye.MultiplyByScalor(n).Subtract(_NormalVector.MultiplyByScalor(n * VdotN + sqrt(k)));
+	Vector3 _NewUV;
 
-	sprintf(debug_buf,"\n PixelNormal: %f %f %f", _NormalTemp.x, _NormalTemp.y,_NormalTemp.z);
-	//OutputDebugString(debug_buf);
+	float _Value0 = 0;
+	float _Value00 = 0;
+	float _Value1 = 0;
+	if(k < 0)
+	{
+		float _DistX = render->m_MaxXG - render->m_MinXG;
+		float _DistY = render->m_MaxYG - render->m_MinYG;
 
-	sprintf(debug_buf,"\nRefractedRay: %f %f %f", RefractedRay.m_x, RefractedRay.m_y,RefractedRay.m_z);
-	//OutputDebugString(debug_buf);
+		_NewUV.m_x = 1 - x/_DistX;
+		_NewUV.m_y = y/_DistY;
+	}
+	else
+	{
+		_Value0 = sqrt(k);
+		_Value00 = n * VdotN;
+		_Value1 = _Value0 + _Value00;
+		_NormalVector.MultiplyByScalor(_Value1);
+		_Incident.MultiplyByScalor(n);
 
-	//x-=15;
+		RefractedRay = _NormalVector.Subtract(_Incident);
+		RefractedRay.Normalise();
 
-	float _DistX = render->m_MaxXG - render->m_MinXG;
-	float _DistY = render->m_MaxYG - render->m_MinYG;
+		sprintf(debug_buf,"\n MainPosition: %i %i %i", x, y, z);
+		OutputDebugString(debug_buf);
 
-	RefractedRay.m_x = 1 - x/_DistX;
-	RefractedRay.m_y = y/_DistY;
+	/*	sprintf(debug_buf,"\n Incident: %f %f %f", _Incident.m_x, _Incident.m_y, _Incident.m_z);
+		OutputDebugString(debug_buf);*/
 
-	return RefractedRay;
+		/*sprintf(debug_buf,"\n PixelNormal: %f %f %f", _NormalTemp.x, _NormalTemp.y,_NormalTemp.z);
+		OutputDebugString(debug_buf);*/
+
+		sprintf(debug_buf,"\nRefractedRay: %f %f %f", RefractedRay.m_x, RefractedRay.m_y,RefractedRay.m_z);
+		OutputDebugString(debug_buf);
+
+
+		Vector3 _HitPosition = Raycast(_PixelPosition, RefractedRay, 100, 5);
+		
+		x -= 2;
+		y += 2;
+
+		float _DistX = render->m_MaxXG - render->m_MinXG;
+		float _DistY = render->m_MaxYG - render->m_MinYG;
+
+		_NewUV.m_x = 1 - x/_DistX;
+		_NewUV.m_y = y/_DistY;
+	}
+	return _NewUV;
 }
 
 int normalMatrixlevel = 0;
